@@ -61,14 +61,16 @@ void setup(void)
   // Página de relé encendido
     server.on("/ReleOn", [](){
     server.send(200, "text/html", page);
-    digitalWrite(pinRele, HIGH);
+    //digitalWrite(pinRele, HIGH);
+    Serial.write('P');
     delay(1000);
   });
-  // Página de relé apagado
+  // Página 0de relé apagado
     server.on("/ReleOff", [](){
     server.send(200, "text/html", page);
     //server.send(200, "text/html", page + "<p>Lámpara apagada</p>");
     digitalWrite(pinRele, LOW);
+    Serial.write('A');
     delay(1000); 
   });
 
