@@ -14,7 +14,7 @@ DNSServer dnsServer;
 ESP8266WebServer server(80);
 
 // Datos de los pines de la placa
-int pinRele = 4;
+int pinRELE = 4;
 int pinLED = 2;
 int incomingByte = 0;
 // Variable global para manejar el contenido de la pagina (HTML)
@@ -35,25 +35,19 @@ void setup(void)
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0)); // if you want to configure another IP address
   WiFi.softAP(ssid, password);
   WiFi.begin();
-/* Setup the DNS server redirecting all the domains to the apIP */
+  /* Setup the DNS server redirecting all the domains to the apIP */
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.start(DNS_PORT, "*", apIP);
-
   /* Setup web pages: root, wifi config pages, SO captive portal detectors and not found. */
- 
   server.begin(); 
   //Ponemos el código HTML en page (va un sólo chorizo de código)
   //page = "<h1>Al COVID con UV</h1><p><a href=\"ReleOn\"><button>ON</button></a>&nbsp;<a href=\"ReleOff\"><button>OFF</button></a></p>";
   page = "<h1 style=\"text-align: center;\"><span style=\"color: #33cccc;\">LUMI-19</span></h1><p style=\"text-align: center;\"><a href=\"ReleOn\"><button>ON</button></a>&nbsp;<a href=\"ReleOff\"><button>OFF</button></a></p><p style=\"text-align: center;\">Control a distancia&nbsp;</p><p style=\"text-align: center;\">www.lumi-uv.com.ar</p>";
-  //Inicializamos el pin que va al relé, apagado
-  pinMode(pinRele, OUTPUT);
+  pinMode(pinRELE, OUTPUT);
   pinMode(pinLED, OUTPUT);
-  
-  digitalWrite(pinRele, LOW);
-  digitalWrite(pinLED, HIGH);   
-  delay(1000);
+  digitalWrite(pinRELE, LOW);
+  digitalWrite(pinLED, HIGH); // Inicializamos el pin que va al relé, apagado
   Serial.begin(115200);
-
   // Página raíz 
     server.on("/", [](){
     server.send(200, "text/html", page);
@@ -61,19 +55,16 @@ void setup(void)
   // Página de relé encendido
     server.on("/ReleOn", [](){
     server.send(200, "text/html", page);
-    //digitalWrite(pinRele, HIGH);
-    Serial.write('P');
-    delay(1000);
+    //digitalWrite(pinRELE, HIGH);
+    Serial.write('P'); //prender-
   });
   // Página 0de relé apagado
     server.on("/ReleOff", [](){
     server.send(200, "text/html", page);
     //server.send(200, "text/html", page + "<p>Lámpara apagada</p>");
-    digitalWrite(pinRele, LOW);
-    Serial.write('A');
-    delay(1000); 
+    digitalWrite(pinRELE, LOW);
+    Serial.write('A'); // apagar- 
   });
-
   // Arrancamos el servidor
   server.begin();
 }
@@ -81,22 +72,23 @@ void setup(void)
 void loop(void)
 {
   // Solamente hay que correr el handle para el cliente
-   // Do work:
+  // Do work:
   //DNS
   dnsServer.processNextRequest();
   server.handleClient();
-  
-   if (Serial.available() > 0) {
+  if (Serial.available() > 0)
+  {
     // read the incoming byte:
     incomingByte = Serial.read();
-    if(incomingByte > '5')
+    if(incomingByte == 'O')  // "ON" 
     {
-    digitalWrite(pinRele, HIGH);
+      digitalWrite(pinRELE, HIGH);
+      delay(500);
     }
-    else
+    if(incomingByte == 'S') // "STOP"
     {
-      digitalWrite(pinRele, LOW);
+      digitalWrite(pinRELE, LOW);
+      delay(500);
     }
-    }
-    
+  }
 }
